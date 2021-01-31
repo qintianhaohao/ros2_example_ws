@@ -7,7 +7,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
-#include "topic_statistics_demo/string_talker_listener_nodes.hpp"
+#include "topic_statistics_demo/string_listener_node.hpp"
+// #include "topic_statistics_demo/string_talker_node.hpp"
 #include "topic_statistics_demo/topic_statistics_listener.hpp"
 
 using namespace std::chrono_literals;
@@ -78,9 +79,9 @@ int main(int argc, char * argv[])
   options.topic_stats_options.publish_period = publish_period;
 
   if (topic_type == "string") {
-    // Start the talker and listener nodes to pass IMU messages
-    auto talker = std::make_shared<StringTalker>(test_topic);
-    talker->initialize();
+    // Start the talker and listener nodes
+    // auto talker = std::make_shared<StringTalker>(test_topic);
+    // talker->initialize();
     auto listener = std::make_shared<StringListener>(test_topic, options);
     listener->initialize();
 
@@ -89,7 +90,7 @@ int main(int argc, char * argv[])
     statistics_listener->initialize();
 
     // Execution
-    executor.add_node(talker);
+    // executor.add_node(talker);
     executor.add_node(listener);
     executor.add_node(statistics_listener);
     executor.spin();

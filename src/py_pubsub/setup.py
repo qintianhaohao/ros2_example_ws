@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'py_string_talker = py_pubsub.py_string_talker:main',
+            'people_detect = py_pubsub.people_detect:main',
         ],
     },
 )

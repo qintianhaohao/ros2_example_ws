@@ -54,8 +54,8 @@ std::string TopicStatisticsListener::MetricsMessageToString(const MetricsMessage
 bool TopicStatisticsListener::isTimeOut(const MetricsMessage & results)
 {
   for (const auto & statistic : results.statistics) {
-    if (statistic.data_type == 1 && statistic.data > 2000) {
-      RCLCPP_WARN(get_logger(), "msg time out! average time: %f", statistic.data);
+    if (statistic.data_type == 3 && statistic.data > 2000) {
+      RCLCPP_WARN(get_logger(), "msg time out! max time: %f", statistic.data);
       return true;
     }
   }

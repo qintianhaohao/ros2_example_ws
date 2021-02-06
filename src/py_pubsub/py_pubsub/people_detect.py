@@ -7,6 +7,7 @@ import argparse
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from statistics_msgs.msg import MetricsMessage
 
 parser = argparse.ArgumentParser()  #创建ArgumentParser()对象
 parser.add_argument("-a", "--algorithm", help = "m (or nothing) for meanShift and c for camshift")
@@ -73,6 +74,8 @@ class MinimalPublisher(Node):
     def __init__(self):
         super().__init__('py_string_talker')
         self.publisher_ = self.create_publisher(String, 'topic_statistics_chatter', 10)
+        self.subscription = self.create_subscription(MetricsMessage, 'statistics', self.listener_callback, 10)
+        self.subscription  # prevent unused variable warning
 
         self.camera = cv2.VideoCapture(vedio_path)
         self.history = 20
@@ -82,10 +85,19 @@ class MinimalPublisher(Node):
         self.pedestrians = {}
         self.firstFrame = True
         self.frames = 0
+        self.statistic_warning = None
 
         timer_period = 0.1  # seconds
         self.detecter = self.create_timer(timer_period, self.detect_callback)
 
+    def listener_callback(self, msg):
+        for statistic in msg.statistics:
+            if statistic.data_type == 3 and statistic.data > 2000:
+                self.statistic_warning = '[statistic warning]: msg time out!'
+                self.get_logger().warn('[statistic warning!] msg time out! max time: {}'.format(statistic.data))
+                self.get_logger().info('[statistic message]: {}'.format(msg.statistics))
+                return
+                
     def detect_callback(self):
         print("---- FRAME %d ------" % self.frames)
         grabbed, frame = self.camera.read()
@@ -112,16 +124,23 @@ class MinimalPublisher(Node):
         
         if counter > 7:
             print('------ detect too many people: {} ------'.format(counter))
-            time.sleep(3)
+            time.sleep(2)
         self.pub_msg(counter)   # publish number of people by ros
 
         for i,p in self.pedestrians.items():
             p.update(frame)
-    
+
         self.firstFrame = False
         self.frames += 1
-        
-        cv2.imshow("surveillance", frame)
+
+        # show statistic warning message
+        if self.statistic_warning:
+            cv2.putText(frame, self.statistic_warning, (30, 300), font, 1.2, (0,0,255), 3, cv2.LINE_AA)
+            cv2.imshow("surveillance", frame)
+            time.sleep(1)
+            self.statistic_warning = None
+        else:
+            cv2.imshow("surveillance", frame)
         
         if cv2.waitKey(24) & 0xff == 27:
             pass
